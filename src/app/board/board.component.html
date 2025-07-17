@@ -1,0 +1,12 @@
+<div class="chess-board">
+  <div *ngFor="let row of pieces; let y = index" class="board-row">
+    <div
+      *ngFor="let piece of row; let x = index"
+      class="board-cell"
+      [ngClass]="(x + y) % 2 === 0 ? 'white-cell' : 'black-cell'">
+      <ng-container *ngIf="piece">
+        <app-piece [piece]="piece"></app-piece>
+      </ng-container>
+    </div>
+  </div>
+</div>
