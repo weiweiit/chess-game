@@ -2,7 +2,6 @@ import { Component } from '@angular/core';
 import { RouterOutlet } from '@angular/router';
 import { PieceComponent } from './piece/piece.component';
 import { BoardComponent } from './board/board.component';
-
 @Component({
   selector: 'app-root',
   standalone: true,

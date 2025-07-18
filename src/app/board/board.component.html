@@ -1,10 +1,19 @@
-<div class="chess-board">
-  <div *ngFor="let row of pieces; let y = index" class="board-row">
+<div class="board">
+  <div *ngFor="let _ of [].constructor(board.size); let x = index">
     <div
-      *ngFor="let piece of row; let x = index"
-      class="board-cell"
-      [ngClass]="(x + y) % 2 === 0 ? 'white-cell' : 'black-cell'">
-      <ng-container *ngIf="piece">
+      *ngFor="let _ of [].constructor(board.size); let y = index"
+      [ngClass]="[
+        'cell',
+        (x + y) % 2 === 0 ? 'white' : 'black',
+        board.isSelectedCell({ x: x, y: y }) ? 'selected' : '',
+        board.isReachableCell({ x: x, y: y })
+          ? board.pieceAt({ x: x, y: y })
+            ? 'targeted'
+            : 'reachable'
+          : '',
+      ]"
+      (click)="selectCell({ x: x, y: y })">
+      <ng-container *ngIf="board.pieceAt({ x: x, y: y }) as piece">
         <app-piece [piece]="piece"></app-piece>
       </ng-container>
     </div>
