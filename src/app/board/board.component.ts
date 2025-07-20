@@ -25,7 +25,7 @@ export class BoardComponent {
       } else {
         this.board.selectedCell = coordinates;
         const piece = this.board.pieceAt(coordinates);
-        if (piece && piece?.color === this.board.turn) this.board.showPossibleMoves(piece);
+        if (piece.color === this.board.turn) this.board.showValidMovesOf(piece);
         else this.board.reachableCells = [];
       }
     }

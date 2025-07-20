@@ -65,19 +65,13 @@ export class Piece {
     } else if (this.type === PieceType.King) {
       return this.getKingMoves();
     }
-    return { directions: [], limit: false };
+    return { directions: [], limit: null };
   }
 
   getPawnMoves(): PieceMoves {
     return {
-      directions:
-        this.hasMoved === 0
-          ? [
-              { x: 0, y: 1 },
-              { x: 0, y: 2 },
-            ]
-          : [{ x: 0, y: 1 }],
-      limit: true,
+      directions: [{ x: 0, y: 1 }],
+      limit: this.hasMoved === 0 ? 2 : 1,
     };
   }
 
@@ -93,7 +87,7 @@ export class Piece {
         { x: -2, y: 1 },
         { x: -1, y: 2 },
       ],
-      limit: true,
+      limit: 1,
     };
   }
 
@@ -105,7 +99,7 @@ export class Piece {
         { x: -1, y: -1 },
         { x: -1, y: 1 },
       ],
-      limit: false,
+      limit: null,
     };
   }
 
@@ -117,7 +111,7 @@ export class Piece {
         { x: 1, y: 0 },
         { x: -1, y: 0 },
       ],
-      limit: false,
+      limit: null,
     };
   }
 
@@ -126,7 +120,7 @@ export class Piece {
     const rookMoves = this.getRookMoves();
     return {
       directions: [...bishopMoves.directions, ...rookMoves.directions],
-      limit: false,
+      limit: null,
     };
   }
 
@@ -135,7 +129,7 @@ export class Piece {
     const rookMoves = this.getRookMoves();
     return {
       directions: [...bishopMoves.directions, ...rookMoves.directions],
-      limit: true,
+      limit: 1,
     };
   }
 }

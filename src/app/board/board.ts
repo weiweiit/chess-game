@@ -90,9 +90,9 @@ export class Board {
     this._reachableCells = coordinates;
   }
 
-  pieceAt(coordinates: { x: number; y: number }): Piece | null {
+  pieceAt(coordinates: { x: number; y: number }): Piece {
     const index = coordinates.y * this.size + coordinates.x;
-    return this._board[index];
+    return this._board[index] as Piece;
   }
 
   isSelectedCell(coordinates: Coordinates): boolean {
@@ -103,44 +103,31 @@ export class Board {
     return this._reachableCells.some(cell => cell.x === coordinates.x && cell.y === coordinates.y);
   }
 
-  showPossibleMoves(piece: Piece): void {
-    this._reachableCells = this.determineTargetedCells(piece);
+  showValidMovesOf(piece: Piece): void {
+    this._reachableCells = this.determineValidMovesOf(piece);
   }
 
-  determineTargetedCells(piece: Piece): Coordinates[] {
-    const targertedCells: Coordinates[] = [];
+  determineValidMovesOf(piece: Piece): Coordinates[] {
+    const validMoves: Coordinates[] = [];
     const piecesMoves = piece.getMoves(this.userColor);
 
     piecesMoves.directions.forEach(direction => {
-      if (piecesMoves.limit) {
+      for (let i = 1; i <= this.size && (!piecesMoves.limit || i <= piecesMoves.limit); i++) {
         const newCoordinates: Coordinates = {
-          x: piece.coordinates.x + direction.x,
-          y: piece.coordinates.y + direction.y,
+          x: piece.coordinates.x + direction.x * i,
+          y: piece.coordinates.y + direction.y * i,
         };
         if (this.isValidCoordinates(newCoordinates)) {
-          targertedCells.push(newCoordinates);
-        }
-      } else {
-        for (let i = 1; i < this.size; i++) {
-          const newCoordinates: Coordinates = {
-            x: piece.coordinates.x + direction.x * i,
-            y: piece.coordinates.y + direction.y * i,
-          };
-          if (this.isValidCoordinates(newCoordinates)) {
-            targertedCells.push(newCoordinates);
+          validMoves.push(newCoordinates);
 
-            if (
-              this.pieceAt(newCoordinates) !== null &&
-              this.pieceAt(newCoordinates)?.color !== this.pieceAt(this._selectedCell!)?.color
-            )
-              break;
-          } else {
-            break; // Stop if we go out of bounds
-          }
+          if (this.pieceAt(newCoordinates) !== null) break;
+        } else {
+          break;
         }
       }
     });
-    return targertedCells;
+
+    return validMoves;
   }
 
   isValidCoordinates(coordinates: Coordinates): boolean {
@@ -158,29 +145,33 @@ export class Board {
     const currentIndex = oldCoordinates.y * this.size + oldCoordinates.x;
     const newIndex = newCoordinates.y * this.size + newCoordinates.x;
 
-    const piece = this.pieceAt(oldCoordinates);
-    if (piece) {
-      piece.coordinates = newCoordinates;
-      this._board[currentIndex] = null;
-      this._board[newIndex] = piece;
-      piece.hasMoved += 1;
-      this.checkForCheck();
-    }
+    const piece = this.pieceAt(oldCoordinates) as Piece;
+    piece.coordinates = newCoordinates;
+    this._board[currentIndex] = null;
+    this._board[newIndex] = piece;
+    piece.hasMoved += 1;
+
+    this.checkForCheck();
     this._selectedCell = null;
+
     this._turn = this._turn === ColorEnum.White ? ColorEnum.Black : ColorEnum.White;
   }
 
-  checkForCheck(): void {
-    this._board.forEach(cell => {
-      if (cell instanceof Piece && cell?.color === this._turn) {
-        const targertedCells = this.determineTargetedCells(cell);
-        const king = targertedCells.filter(target => this.pieceAt(target)?.type === PieceType.King);
-        if (king.length > 0) {
-          this._reachableCells = king;
-        } else {
-          this._reachableCells = [];
-        }
+  checkForCheck(): boolean {
+    const playerPieces = this._board.filter(
+      cell => cell instanceof Piece && cell?.color === this._turn
+    ) as Piece[];
+    for (const piece of playerPieces) {
+      const opponentKingCoordinates = this.determineValidMovesOf(piece).filter(
+        target => this.pieceAt(target)?.type === PieceType.King
+      );
+      if (opponentKingCoordinates) {
+        this._reachableCells = opponentKingCoordinates;
+        return true;
+      } else {
+        this._reachableCells = [];
       }
-    });
+    }
+    return false;
   }
 }
