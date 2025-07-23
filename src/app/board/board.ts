@@ -117,7 +117,12 @@ export class Board {
           x: piece.coordinates.x + direction.x * i,
           y: piece.coordinates.y + direction.y * i,
         };
-        if (this.isValidCoordinates(newCoordinates)) {
+        if (
+          (piece.type !== PieceType.Pawn && this.isValidCoordinates(newCoordinates)) ||
+          (piece.type === PieceType.Pawn &&
+            this.isValidCoordinates(newCoordinates) &&
+            !this.pieceAt(newCoordinates))
+        ) {
           validMoves.push(newCoordinates);
 
           if (this.pieceAt(newCoordinates) !== null) break;
@@ -127,17 +132,41 @@ export class Board {
       }
     });
 
+    if (piece.type === PieceType.Pawn) {
+      const toEat =
+        piece.color !== this.userColor
+          ? [
+              { x: -1, y: 1 },
+              { x: 1, y: 1 },
+            ]
+          : [
+              { x: -1, y: -1 },
+              { x: 1, y: -1 },
+            ];
+      toEat.forEach(direction => {
+        for (let i = 1; i <= this.size && (!piecesMoves.limit || i <= piecesMoves.limit); i++) {
+          const newCoordinates: Coordinates = {
+            x: piece.coordinates.x + direction.x * i,
+            y: piece.coordinates.y + direction.y * i,
+          };
+          if (this.isValidCoordinates(newCoordinates) && this.pieceAt(newCoordinates)) {
+            validMoves.push(newCoordinates);
+          }
+        }
+      });
+    }
+
     return validMoves;
   }
 
-  isValidCoordinates(coordinates: Coordinates): boolean {
+  isValidCoordinates(newCoordinates: Coordinates): boolean {
     return (
-      coordinates.x >= 0 &&
-      coordinates.x < this.size &&
-      coordinates.y >= 0 &&
-      coordinates.y < this.size &&
-      (this.pieceAt(coordinates) === null ||
-        this.pieceAt(coordinates)?.color !== this.pieceAt(this._selectedCell!)?.color)
+      newCoordinates.x >= 0 &&
+      newCoordinates.x < this.size &&
+      newCoordinates.y >= 0 &&
+      newCoordinates.y < this.size &&
+      (this.pieceAt(newCoordinates) === null ||
+        this.pieceAt(newCoordinates)?.color !== this.pieceAt(this._selectedCell!)?.color)
     );
   }
 
